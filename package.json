@@ -1,0 +1,17 @@
+{
+  "name": "jgs-proficiencia",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Site de envio de resultados do Ensaio de Proficiência (JGS) com gravação em MongoDB Atlas, rodando como serviço Node.js no Render.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "mongodb": "^6.9.0"
+  }
+}
