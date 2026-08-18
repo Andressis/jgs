@@ -258,7 +258,7 @@
     cursor:default;
   }
   .field-inline{display:flex; gap:8px; align-items:stretch;}
-  .field-inline input{flex:1;}
+  .field-inline input{flex:1; min-width:0;}
   .regen-btn{
     flex:none;
     width:38px;
