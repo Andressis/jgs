@@ -29,6 +29,15 @@ function prepareLogoForPdf(){
 }
 
 /* ---------------- Reconstrução do PDF (mesmo layout do formulário) ---------------- */
+// A fonte padrão do PDF (Helvetica) não tem o glifo do "μ" grego (U+03BC) usado
+// nos rótulos em tela — por isso ele saía quebrado/em branco no PDF. O "µ" (sinal
+// de micro, U+00B5) faz parte do conjunto de caracteres suportado, então convertemos
+// qualquer texto antes de desenhar no PDF.
+function toPdfText(value){
+  if(value === null || value === undefined) return value;
+  return String(value).replace(/μ/g, '\u00B5');
+}
+
 function buildPdf(rows, codigo){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
@@ -51,7 +60,7 @@ function buildPdf(rows, codigo){
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   doc.setTextColor(95, 107, 103);
-  doc.text(`Código do participante: ${codigo}`, marginX, y);
+  doc.text(`Código do participante: ${toPdfText(codigo)}`, marginX, y);
   y += 14;
   doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, marginX, y);
   y += 22;
@@ -59,11 +68,12 @@ function buildPdf(rows, codigo){
   const sections = [];
   let current = null;
   rows.slice(1).forEach(([sec, label, value]) => {
-    if (!current || current.name !== sec) {
-      current = { name: sec, items: [] };
+    const secName = toPdfText(sec);
+    if (!current || current.name !== secName) {
+      current = { name: secName, items: [] };
       sections.push(current);
     }
-    current.items.push([label, value && String(value).trim() !== '' ? value : '—']);
+    current.items.push([toPdfText(label), value && String(value).trim() !== '' ? toPdfText(value) : '—']);
   });
 
   sections.forEach(sec => {
