@@ -8,429 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-<style>
-  :root{
-    --paper:#10161A;
-    --grid:#212B2A;
-    --ink:#E9EDE9;
-    --ink-soft:#8FA29B;
-    --teal:#4CC2A6;
-    --teal-deep:#3EA88F;
-    --amber:#F0A059;
-    --liquid:#5FA6DD;
-    --liquid-pale:#16262E;
-    --card:#161E1F;
-    --glass:#ECEEE9;
-    --danger:#F0796C;
-    --radius:2px;
-  }
-  *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{
-    margin:0;
-    color-scheme: dark;
-    background:
-      linear-gradient(var(--grid) 1px, transparent 1px) 0 0/100% 28px,
-      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/28px 100%,
-      radial-gradient(circle at 12% 0%, #16201F 0%, var(--paper) 55%),
-      var(--paper);
-    color:var(--ink);
-    font-family:'IBM Plex Sans', sans-serif;
-    line-height:1.5;
-    -webkit-font-smoothing:antialiased;
-  }
-  @media (prefers-reduced-motion: reduce){
-    html{scroll-behavior:auto;}
-    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
-  }
-
-  .wrap{
-    max-width:1100px;
-    margin:0 auto;
-    padding:0 24px 120px;
-  }
-
-  /* ---------- Header ---------- */
-  header.hero{
-    padding:56px 0 36px;
-    border-bottom:2px solid var(--ink);
-    margin-bottom:8px;
-  }
-  .eyebrow{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:12px;
-    letter-spacing:.14em;
-    text-transform:uppercase;
-    color:var(--teal-deep);
-    display:flex;
-    align-items:center;
-    gap:10px;
-    margin-bottom:18px;
-  }
-  .eyebrow::before{
-    content:"";
-    width:22px;height:1px;background:var(--teal-deep);display:inline-block;
-  }
-  h1{
-    font-family:'Space Grotesk', sans-serif;
-    font-weight:700;
-    font-size:clamp(30px, 5vw, 46px);
-    line-height:1.05;
-    margin:0 0 16px;
-    letter-spacing:-0.01em;
-  }
-  h1 em{
-    font-style:normal;
-    color:var(--teal);
-  }
-  .hero-sub{
-    max-width:640px;
-    color:var(--ink-soft);
-    font-size:16px;
-  }
-  .hero-meta{
-    display:flex;
-    gap:28px;
-    margin-top:28px;
-    flex-wrap:wrap;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:12px;
-    color:var(--ink-soft);
-  }
-  .hero-meta b{color:var(--ink); font-weight:600;}
-
-  /* ---------- Layout with cylinder gauge ---------- */
-  .layout{
-    display:grid;
-    grid-template-columns: 1fr 96px;
-    gap:36px;
-    align-items:start;
-  }
-  @media (max-width: 780px){
-    .layout{grid-template-columns:1fr;}
-    .gauge-col{display:none;}
-  }
-
-  .gauge-col{
-    position:sticky;
-    top:24px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    padding-top:40px;
-  }
-  .gauge-label{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
-    color:var(--ink-soft);
-    margin-top:10px;
-    text-align:center;
-  }
-  #gaugePct{
-    font-family:'Space Grotesk', sans-serif;
-    font-weight:700;
-    font-size:20px;
-    color:var(--teal-deep);
-  }
-
-  /* mobile progress bar */
-  .mobile-progress{
-    display:none;
-    position:sticky;
-    top:0;
-    z-index:20;
-    background:var(--paper);
-    padding:10px 0;
-    border-bottom:1px solid var(--grid);
-  }
-  @media (max-width:780px){
-    .mobile-progress{display:block;}
-  }
-  .mobile-track{
-    height:6px;
-    background:var(--liquid-pale);
-    border:1px solid var(--ink);
-    overflow:hidden;
-  }
-  .mobile-fill{
-    height:100%;
-    background:var(--liquid);
-    width:0%;
-    transition:width .4s ease;
-  }
-  .mobile-progress-text{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
-    color:var(--ink-soft);
-    margin-top:6px;
-  }
-
-  /* ---------- Section cards ---------- */
-  .section{
-    background:var(--card);
-    border:1px solid var(--ink);
-    margin-top:28px;
-    position:relative;
-  }
-  .section-head{
-    display:flex;
-    align-items:center;
-    gap:14px;
-    padding:18px 22px;
-    border-bottom:1px solid var(--grid);
-    cursor:pointer;
-    user-select:none;
-  }
-  .section-titles{flex:1;}
-  .section-tag{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:10.5px;
-    letter-spacing:.1em;
-    text-transform:uppercase;
-    color:var(--amber);
-  }
-  .section-name{
-    font-family:'Space Grotesk', sans-serif;
-    font-weight:600;
-    font-size:19px;
-  }
-  .section-status{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
-    color:var(--ink-soft);
-    white-space:nowrap;
-  }
-  .chevron{
-    width:14px;height:14px;
-    border-right:2px solid var(--ink);
-    border-bottom:2px solid var(--ink);
-    transform:rotate(45deg);
-    transition:transform .25s ease;
-    flex:none;
-  }
-  .section.open .chevron{transform:rotate(-135deg);}
-  .section-body{
-    max-height:0;
-    overflow:hidden;
-    transition:max-height .35s ease;
-  }
-  .section.open .section-body{max-height:6000px;}
-  .section-inner{padding:6px 22px 26px;}
-
-  /* header info grid */
-  .field-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(190px, 1fr));
-    gap:16px 18px;
-    margin-top:18px;
-  }
-  .field{display:flex; flex-direction:column; gap:6px;}
-  .field label{
-    font-size:12px;
-    color:var(--ink-soft);
-    font-weight:500;
-  }
-  .field label .req{color:var(--danger); margin-left:2px;}
-  .field input, .field select{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:14.5px;
-    padding:9px 10px;
-    border:1px solid #33403E;
-    background:#0D1315;
-    border-radius:var(--radius);
-    color:var(--ink);
-  }
-  .field input:focus, .field select:focus{
-    outline:2px solid var(--teal);
-    outline-offset:1px;
-    border-color:var(--teal);
-  }
-  .field input::placeholder{color:#54625D; font-family:'IBM Plex Sans', sans-serif;}
-  .field input[readonly]{
-    color:var(--teal);
-    font-weight:600;
-    border-color:var(--teal-deep);
-    background:#0E1A18;
-    cursor:default;
-  }
-  .field-inline{display:flex; gap:8px; align-items:stretch;}
-  .field-inline input{flex:1;}
-  .regen-btn{
-    flex:none;
-    width:38px;
-    border:1px solid #33403E;
-    background:#0D1315;
-    color:var(--teal);
-    border-radius:var(--radius);
-    cursor:pointer;
-    font-size:16px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    transition:transform .3s ease, border-color .2s ease;
-  }
-  .regen-btn:hover{border-color:var(--teal);}
-  .regen-btn:active{transform:rotate(180deg);}
-  .regen-btn:focus-visible{outline:2px solid var(--teal); outline-offset:2px;}
-
-  /* measurement point block */
-  .point{
-    border:1px dashed #2E3937;
-    margin-top:22px;
-    padding:16px 18px 20px;
-    position:relative;
-  }
-  .point-group{
-    border:1px solid var(--grid);
-    margin-top:24px;
-    padding:18px 16px 14px;
-    background:#12191A;
-  }
-  .point-group-title{
-    font-family:'Space Grotesk', sans-serif;
-    font-weight:600;
-    font-size:15px;
-    color:var(--teal);
-    margin-bottom:4px;
-  }
-  .point-title{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:12px;
-    text-transform:uppercase;
-    letter-spacing:.08em;
-    color:var(--teal-deep);
-    background:var(--card);
-    position:absolute;
-    top:-9px; left:14px;
-    padding:0 8px;
-  }
-  .split{
-    display:grid;
-    grid-template-columns:1.15fr 1fr;
-    gap:26px;
-    margin-top:14px;
-  }
-  @media (max-width:640px){.split{grid-template-columns:1fr;}}
-  .split h4{
-    grid-column:1/-1;
-    display:none;
-  }
-  .subhead{
-    font-size:11.5px;
-    text-transform:uppercase;
-    letter-spacing:.08em;
-    color:var(--ink-soft);
-    margin:0 0 4px;
-    font-weight:600;
-  }
-
-  /* ---------- Contact / submit section ---------- */
-  .submit-card{
-    margin-top:40px;
-    padding:30px 26px 32px;
-    background:var(--ink);
-    color:var(--paper);
-    border:1px solid var(--ink);
-  }
-  .submit-card h2{
-    font-family:'Space Grotesk', sans-serif;
-    font-size:24px;
-    margin:0 0 6px;
-  }
-  .submit-card p{color:#3E4B47; font-size:14px; max-width:560px; margin:0 0 22px;}
-  .submit-card .field label{color:#4B5A55;}
-  .submit-card .field input{background:#F0F1EB; border-color:#C7D0C9; color:var(--paper);}
-  .submit-actions{
-    margin-top:24px;
-    display:flex;
-    gap:14px;
-    flex-wrap:wrap;
-    align-items:center;
-  }
-  button.primary{
-    font-family:'Space Grotesk', sans-serif;
-    font-weight:600;
-    font-size:15px;
-    background:var(--amber);
-    color:#1B1200;
-    border:none;
-    padding:14px 26px;
-    cursor:pointer;
-    border-radius:var(--radius);
-    transition:transform .15s ease, background .15s ease;
-  }
-  button.primary:hover{background:#F5B074;}
-  button.primary:active{transform:translateY(1px);}
-  button.primary:focus-visible{outline:2px solid var(--paper); outline-offset:3px;}
-  .hint{font-size:12.5px; color:#57655F;}
-
-  #confirmPanel{
-    display:none;
-    margin-top:22px;
-    padding:18px 20px;
-    background:var(--card);
-    border:1px solid var(--grid);
-  }
-  #confirmPanel.show{display:block;}
-  #confirmPanel p{color:var(--ink); margin:0 0 12px; font-size:14px;}
-  a.mailto-btn{
-    display:inline-block;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:13px;
-    color:var(--ink);
-    border:1px solid var(--ink);
-    padding:9px 16px;
-    text-decoration:none;
-  }
-  a.mailto-btn:hover{background:var(--ink); color:var(--card);}
-
-  .error-list{
-    display:none;
-    margin-top:16px;
-    padding:14px 16px;
-    border:1px solid var(--danger);
-    background:#3A2420;
-    color:#F3D6CE;
-    font-size:13px;
-  }
-  .error-list.show{display:block;}
-
-  footer{
-    text-align:center;
-    padding:36px 0 10px;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
-    color:var(--ink-soft);
-  }
-
-  #testFillBtn{
-    position:fixed;
-    top:16px;
-    right:16px;
-    z-index:30;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:11.5px;
-    letter-spacing:.02em;
-    color:var(--amber);
-    background:#0D1315;
-    border:1px dashed var(--amber);
-    padding:8px 12px;
-    border-radius:var(--radius);
-    cursor:pointer;
-    opacity:.75;
-    transition:opacity .2s ease, background .2s ease;
-  }
-  #testFillBtn:hover{opacity:1; background:#1A140A;}
-  #testFillBtn:focus-visible{outline:2px solid var(--amber); outline-offset:2px;}
-  @media (max-width:640px){
-    #testFillBtn{
-      position:static;
-      display:block;
-      margin:10px auto 0;
-      width:max-content;
-    }
-  }
-</style>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
@@ -446,13 +24,15 @@
 <div class="wrap">
 
   <header class="hero">
+    <img src="logo.png" alt="JGS Proficiência" class="brand-logo">
+    <img src="logo.png" id="logoForPdf" alt="" style="display:none" crossorigin="anonymous">
     <div class="eyebrow">Ensaio de Proficiência · Vidraria Volumétrica</div>
     <h1>Envie os resultados<br>da <em>sua calibração</em>.</h1>
-    <p class="hero-sub">Preencha os valores obtidos para cada item de vidraria. Ao final, você baixa um arquivo com os dados e o envia por e‑mail para o laboratório organizador.</p>
+    <p class="hero-sub">Preencha os valores obtidos para cada item de vidraria. Ao final, você baixa um arquivo PDF com os dados.</p>
     <div class="hero-meta">
-      <div><b>4</b> instrumentos</div>
+      <div><b>4</b> Instrumentos</div>
       <div><b>~</b></div>
-      <div>Campos com <span style="color:var(--danger)">*</span> são obrigatórios</div>
+      <div>Campos não preenchidos são destacados <span style="color:var(--amber)">em amarelo</span> ao enviar</div>
     </div>
   </header>
 
@@ -475,21 +55,21 @@
               <div class="field">
                 <label>Código do participante</label>
                 <div class="field-inline">
-                  <input type="text" data-req data-section="ident" id="codigo" readonly>
+                  <input type="text" data-section="ident" id="codigo" readonly>
                   <button type="button" class="regen-btn" onclick="generateCode()" title="Gerar novo código" aria-label="Gerar novo código">↻</button>
                 </div>
               </div>
               <div class="field">
-                <label>Data da chegada<span class="req">*</span></label>
-                <input type="date" data-req data-section="ident" id="data_chegada">
+                <label>Data da chegada</label>
+                <input type="date" data-section="ident" id="data_chegada">
               </div>
               <div class="field">
-                <label>Data da calibração<span class="req">*</span></label>
-                <input type="date" data-req data-section="ident" id="data_calibracao">
+                <label>Data da calibração</label>
+                <input type="date" data-section="ident" id="data_calibracao">
               </div>
               <div class="field">
-                <label>Data da saída<span class="req">*</span></label>
-                <input type="date" data-req data-section="ident" id="data_saida">
+                <label>Data da saída</label>
+                <input type="date" data-section="ident" id="data_saida">
               </div>
             </div>
           </div>
@@ -503,7 +83,7 @@
             <div class="section-tag">01 — Item de ensaio</div>
             <div class="section-name">Balão Volumétrico de 100 mL</div>
           </div>
-          <div class="section-status" data-status="balao">0/33</div>
+          <div class="section-status" data-status="balao">0/11</div>
           <div class="chevron"></div>
         </div>
         <div class="section-body">
@@ -518,7 +98,7 @@
             <div class="section-tag">02 — Item de ensaio</div>
             <div class="section-name">Pipeta Volumétrica de 10 mL</div>
           </div>
-          <div class="section-status" data-status="pipeta">0/27</div>
+          <div class="section-status" data-status="pipeta">0/9</div>
           <div class="chevron"></div>
         </div>
         <div class="section-body">
@@ -533,7 +113,7 @@
             <div class="section-tag">03 — Item de ensaio</div>
             <div class="section-name">Bureta de Vidro de 10 mL</div>
           </div>
-          <div class="section-status" data-status="bureta">0/81</div>
+          <div class="section-status" data-status="bureta">0/30</div>
           <div class="chevron"></div>
         </div>
         <div class="section-body">
@@ -546,9 +126,9 @@
         <div class="section-head" onclick="toggleSection(this)">
           <div class="section-titles">
             <div class="section-tag">04 — Item de ensaio</div>
-            <div class="section-name">Micropipeta Graduada de 10 mL a 100 mL</div>
+            <div class="section-name">Micropipeta Graduada de 10 μL a 100 μL</div>
           </div>
-          <div class="section-status" data-status="micro">0/81</div>
+          <div class="section-status" data-status="micro">0/27</div>
           <div class="chevron"></div>
         </div>
         <div class="section-body">
@@ -559,23 +139,22 @@
       <!-- SUBMIT -->
       <div class="submit-card">
         <h2>Finalizar envio</h2>
-        <p>Informe seus dados de contato e gere o arquivo de resultados. Depois, anexe o arquivo baixado ao e‑mail que abriremos para você.</p>
+        <p> <b> Informe seus dados de contato e gere o arquivo de resultados.</b></p>
         <div class="field-grid">
-          <div class="field"><label>Nome / Empresa<span class="req">*</span></label><input type="text" data-req data-section="contato" id="contato_nome" placeholder="Seu nome ou razão social"></div>
-          <div class="field"><label>E‑mail para contato<span class="req">*</span></label><input type="email" data-req data-section="contato" id="contato_email" placeholder="voce@empresa.com"></div>
+          <div class="field"><label>Razão social</label><input type="text" data-section="contato" id="contato_nome" placeholder="Razão social"></div>
+          <div class="field"><label>E‑mail</label><input type="email" data-section="contato" id="contato_email" placeholder="voce@empresa.com"></div>
           <div class="field"><label>Telefone</label><input type="tel" data-section="contato" id="contato_telefone" placeholder="(41) 9xxxx-xxxx"></div>
         </div>
 
         <div class="error-list" id="errorList"></div>
 
         <div class="submit-actions">
-          <button class="primary" onclick="handleSubmit()">Baixar arquivo de resultados</button>
-          <span class="hint">Gera um arquivo .pdf com todos os dados preenchidos.</span>
+          <button class="primary" onclick="handleSubmit()">Baixar resultados</button>
+          <span class="hint">Gera um arquivo .PDF com todos os dados preenchidos.</span>
         </div>
 
         <div id="confirmPanel">
           <p>Arquivo baixado: <strong id="fileNameOut"></strong><br>Agora envie por e‑mail para o laboratório, com o arquivo em anexo.</p>
-          <a class="mailto-btn" id="mailtoBtn" href="#" target="_blank" rel="noopener">Abrir e‑mail para envio →</a>
         </div>
       </div>
 
@@ -606,349 +185,9 @@
     </div>
   </div>
 
-  <footer>Ensaio de Proficiência — Vidraria Volumétrica · dados tratados apenas localmente no seu navegador</footer>
+  <footer> <b> Ensaio de Proficiência — Vidraria Volumétrica </b> </footer>
 </div>
 
-<script>
-/* ---------------- CONFIG ---------------- */
-const LAB_EMAIL = "contato@seulaboratorio.com.br"; // <-- troque pelo e-mail do laboratório
-
-/* ---------------- Auto-generated participant code ---------------- */
-function generateCode(){
-  const n = Math.floor(100000 + Math.random() * 900000); // 6 dígitos aleatórios
-  const input = document.getElementById('codigo');
-  input.value = `PT-${n}`;
-  updateProgress();
-}
-
-/* ---------------- Test data filler ---------------- */
-function fillTestData(){
-  const rnd = (min, max, dec=3) => (Math.random() * (max - min) + min).toFixed(dec);
-  const veffOptions = ['2', '3', '4', '6', 'infinito', '99'];
-  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
-
-  const today = new Date();
-  const fmt = d => d.toISOString().split('T')[0];
-  const chegada = new Date(today); chegada.setDate(chegada.getDate() - 5);
-  const calibracao = new Date(today); calibracao.setDate(calibracao.getDate() - 3);
-  const saida = new Date(today); saida.setDate(saida.getDate() - 1);
-
-  document.getElementById('data_chegada').value = fmt(chegada);
-  document.getElementById('data_calibracao').value = fmt(calibracao);
-  document.getElementById('data_saida').value = fmt(saida);
-
-  const setEnv = prefix => {
-    document.getElementById(`${prefix}_temp_agua`).value = rnd(18, 22, 1);
-    document.getElementById(`${prefix}_temp_amb`).value = rnd(18, 22, 1);
-    document.getElementById(`${prefix}_umidade`).value = rnd(45, 80, 0);
-    document.getElementById(`${prefix}_pressao`).value = rnd(910, 930, 1);
-    document.getElementById(`${prefix}_massa_esp`).value = rnd(0.996, 0.999, 4);
-  };
-  const setMeasure = (prefix, volMin, volMax, incMin, incMax) => {
-    document.getElementById(`${prefix}_volume`).value = rnd(volMin, volMax, 3);
-    document.getElementById(`${prefix}_incerteza`).value = rnd(incMin, incMax, 3);
-    document.getElementById(`${prefix}_k`).value = rnd(2, 4.53, 2);
-    document.getElementById(`${prefix}_veff`).value = pick(veffOptions);
-    setEnv(prefix);
-  };
-  const setCycles = (idPrefix, volMin, volMax, incMin, incMax, withMass) => {
-    ['1','2','3'].forEach(c => {
-      const p = `${idPrefix}_c${c}`;
-      if (withMass) {
-        document.getElementById(`${p}_massa_vazia`).value = rnd(51, 52, 4);
-        document.getElementById(`${p}_massa_cheia`).value = rnd(151, 152, 4);
-      }
-      setMeasure(p, volMin, volMax, incMin, incMax);
-    });
-  };
-
-  // Balão (3 ciclos)
-  setCycles('balao', 99.9, 100.1, 0.01, 0.05, true);
-
-  // Pipeta (3 ciclos)
-  setCycles('pipeta', 9.9, 10.1, 0.005, 0.02, false);
-
-  // Bureta (3 pontos × 3 ciclos)
-  setCycles('bureta_1', 0.95, 1.05, 0.005, 0.02, false);
-  setCycles('bureta_5', 4.9, 5.1, 0.005, 0.02, false);
-  setCycles('bureta_10', 9.9, 10.1, 0.005, 0.02, false);
-
-  // Micropipeta (3 pontos × 3 ciclos)
-  setCycles('micro_10', 10.0, 10.6, 0.1, 0.3, false);
-  setCycles('micro_50', 49.8, 50.6, 0.1, 0.3, false);
-  setCycles('micro_100', 99.8, 101.2, 0.1, 0.4, false);
-
-  // Contato
-  document.getElementById('contato_nome').value = 'Laboratório Exemplo Ltda';
-  document.getElementById('contato_email').value = 'teste@exemplo.com.br';
-  document.getElementById('contato_telefone').value = '(41) 90000-0000';
-
-  document.querySelectorAll('.section').forEach(s => s.classList.add('open'));
-  updateProgress();
-}
-
-/* ---------------- Build repeated measurement cycles ---------------- */
-function buildCycleFields(prefix, sectionKey, placeholders, withMass){
-  const massFields = withMass ? `
-          <div class="field"><label>Massa vazio e seco (g)</label><input type="number" step="any" data-section="${sectionKey}" id="${prefix}_massa_vazia" placeholder="51,86"></div>
-          <div class="field"><label>Média massa cheio (g)</label><input type="number" step="any" data-section="${sectionKey}" id="${prefix}_massa_cheia" placeholder="151,56"></div>` : '';
-  return `
-    <div class="split">
-      <div>
-        <p class="subhead">Medição</p>
-        <div class="field-grid">${massFields}
-          <div class="field"><label>Volume medido (mL)<span class="req">*</span></label><input type="number" step="any" data-req data-section="${sectionKey}" id="${prefix}_volume" placeholder="${placeholders.volume}"></div>
-          <div class="field"><label>Incerteza de medição (mL)<span class="req">*</span></label><input type="number" step="any" data-req data-section="${sectionKey}" id="${prefix}_incerteza" placeholder="${placeholders.incerteza}"></div>
-          <div class="field"><label>k</label><input type="number" step="any" data-section="${sectionKey}" id="${prefix}_k" placeholder="${placeholders.k}"></div>
-          <div class="field"><label>Veff</label><input type="text" data-section="${sectionKey}" id="${prefix}_veff" placeholder="ex.: 2 ou infinito"></div>
-        </div>
-      </div>
-      <div>
-        <p class="subhead">Condições ambientais</p>
-        <div class="field-grid">
-          <div class="field"><label>Temperatura água (°C)</label><input type="number" step="any" data-section="${sectionKey}" id="${prefix}_temp_agua" placeholder="19,8"></div>
-          <div class="field"><label>Temperatura ambiente (°C)</label><input type="number" step="any" data-section="${sectionKey}" id="${prefix}_temp_amb" placeholder="19,5"></div>
-          <div class="field"><label>Umidade relativa (%)</label><input type="number" step="any" data-section="${sectionKey}" id="${prefix}_umidade" placeholder="73"></div>
-          <div class="field"><label>Pressão atmosférica (hPa)</label><input type="number" step="any" data-section="${sectionKey}" id="${prefix}_pressao" placeholder="924,65"></div>
-          <div class="field"><label>Massa específica da água (g/mL)</label><input type="number" step="any" data-section="${sectionKey}" id="${prefix}_massa_esp" placeholder="0,9982"></div>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function buildCycleBlock(container, prefix, sectionKey, label, placeholders, withMass){
-  const div = document.createElement('div');
-  div.className = 'point';
-  div.innerHTML = `<div class="point-title">${label}</div>` + buildCycleFields(prefix, sectionKey, placeholders, withMass);
-  container.appendChild(div);
-}
-
-// For single-point instruments (Balão, Pipeta): 3 cycles directly in the section.
-function buildCycles(container, idPrefix, sectionKey, placeholders, withMass){
-  ['1','2','3'].forEach(c => {
-    buildCycleBlock(container, `${idPrefix}_c${c}`, sectionKey, `${c}º Ciclo`, placeholders, withMass);
-  });
-}
-
-// For multi-point instruments (Bureta, Micropipeta): each point gets its own 3 cycles.
-function buildPointGroup(container, pointPrefix, sectionKey, pointLabel, placeholders){
-  const wrapper = document.createElement('div');
-  wrapper.className = 'point-group';
-  wrapper.innerHTML = `<div class="point-group-title">${pointLabel}</div>`;
-  container.appendChild(wrapper);
-  ['1','2','3'].forEach(c => {
-    buildCycleBlock(wrapper, `${pointPrefix}_c${c}`, sectionKey, `${c}º Ciclo`, placeholders, false);
-  });
-}
-
-/* ---------------- Section toggle ---------------- */
-function toggleSection(headEl){
-  headEl.parentElement.classList.toggle('open');
-}
-
-/* ---------------- Progress + status tracking ---------------- */
-const allInputs = () => Array.from(document.querySelectorAll('.field-grid input'));
-
-function updateProgress(){
-  const inputs = allInputs();
-  const filled = inputs.filter(i => i.value.trim() !== '').length;
-  const pct = inputs.length ? Math.round((filled / inputs.length) * 100) : 0;
-
-  document.getElementById('gaugePct').textContent = pct + '%';
-  document.getElementById('mobilePct').textContent = pct + '%';
-  document.getElementById('mobileFill').style.width = pct + '%';
-
-  const liquid = document.getElementById('liquidRect');
-  const maxH = 128;
-  const h = Math.round((pct/100) * maxH);
-  liquid.setAttribute('height', h);
-  liquid.setAttribute('y', 8 + (maxH - h));
-
-  // per-section status counts
-  const sections = {};
-  inputs.forEach(i => {
-    const s = i.dataset.section;
-    if(!sections[s]) sections[s] = {total:0, filled:0};
-    sections[s].total++;
-    if(i.value.trim() !== '') sections[s].filled++;
-  });
-  Object.keys(sections).forEach(s => {
-    const el = document.querySelector(`[data-status="${s}"]`);
-    if(el) el.textContent = `${sections[s].filled}/${sections[s].total}`;
-  });
-}
-
-/* ---------------- Validation ---------------- */
-function validate(){
-  const missing = [];
-  document.querySelectorAll('[data-req]').forEach(i => {
-    if(i.value.trim() === ''){
-      const label = i.closest('.field').querySelector('label').textContent.replace('*','').trim();
-      const sectionName = i.closest('.section') ? i.closest('.section').querySelector('.section-name').textContent : 'Contato';
-      missing.push(`${sectionName} — ${label}`);
-    }
-  });
-  return missing;
-}
-
-function collectRows(){
-  const g = id => (document.getElementById(id) ? document.getElementById(id).value : '');
-  const rows = [];
-  rows.push(['Seção','Campo','Valor']);
-
-  rows.push(['Identificação','Código do participante', g('codigo')]);
-  rows.push(['Identificação','Data da chegada', g('data_chegada')]);
-  rows.push(['Identificação','Data da calibração', g('data_calibracao')]);
-  rows.push(['Identificação','Data da saída', g('data_saida')]);
-
-  const cycleFields = (prefix, withMass) => {
-    const f = [];
-    if (withMass) {
-      f.push(['Massa vazio e seco (g)', `${prefix}_massa_vazia`]);
-      f.push(['Média massa cheio (g)', `${prefix}_massa_cheia`]);
-    }
-    f.push(
-      ['Volume medido (mL)', `${prefix}_volume`],
-      ['Incerteza de medição (mL)', `${prefix}_incerteza`],
-      ['k', `${prefix}_k`],
-      ['Veff', `${prefix}_veff`],
-      ['Temperatura água (°C)', `${prefix}_temp_agua`],
-      ['Temperatura ambiente (°C)', `${prefix}_temp_amb`],
-      ['Umidade relativa (%)', `${prefix}_umidade`],
-      ['Pressão atmosférica (hPa)', `${prefix}_pressao`],
-      ['Massa específica da água (g/mL)', `${prefix}_massa_esp`]
-    );
-    return f;
-  };
-
-  const addCycles = (sectionLabel, idPrefix, withMass) => {
-    ['1','2','3'].forEach(c => {
-      const p = `${idPrefix}_c${c}`;
-      cycleFields(p, withMass).forEach(([label, id]) => rows.push([sectionLabel, `${c}º Ciclo — ${label}`, g(id)]));
-    });
-  };
-
-  addCycles('Balão Volumétrico de 100 mL', 'balao', true);
-  addCycles('Pipeta Volumétrica de 10 mL', 'pipeta', false);
-
-  ['1','5','10'].forEach(pt => {
-    addCycles(`Bureta de Vidro de 10 mL — ${pt} mL`, `bureta_${pt}`, false);
-  });
-
-  ['10','50','100'].forEach(pt => {
-    addCycles(`Micropipeta Graduada de 10 mL a 100 mL — ${pt} mL`, `micro_${pt}`, false);
-  });
-
-  rows.push(['Contato','Nome / Empresa', g('contato_nome')]);
-  rows.push(['Contato','E-mail', g('contato_email')]);
-  rows.push(['Contato','Telefone', g('contato_telefone')]);
-
-  return rows;
-}
-
-/* ---------------- PDF generation ---------------- */
-function buildPdf(rows, codigo){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-  const marginX = 40;
-  let y = 54;
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
-  doc.setTextColor(20, 40, 38);
-  doc.text('Resultados do Ensaio de Proficiência', marginX, y);
-  y += 20;
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(95, 107, 103);
-  doc.text(`Código do participante: ${codigo}`, marginX, y);
-  y += 14;
-  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, marginX, y);
-  y += 22;
-
-  // group flat rows into sections, skipping the header row
-  const sections = [];
-  let current = null;
-  rows.slice(1).forEach(([sec, label, value]) => {
-    if (!current || current.name !== sec) {
-      current = { name: sec, items: [] };
-      sections.push(current);
-    }
-    current.items.push([label, value && String(value).trim() !== '' ? value : '—']);
-  });
-
-  sections.forEach(sec => {
-    if (y > 760) { doc.addPage(); y = 50; }
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.setTextColor(31, 111, 99);
-    doc.text(sec.name, marginX, y);
-    y += 8;
-
-    doc.autoTable({
-      startY: y,
-      margin: { left: marginX, right: marginX },
-      head: [['Campo', 'Valor']],
-      body: sec.items,
-      theme: 'grid',
-      styles: { font: 'helvetica', fontSize: 9, cellPadding: 5, textColor: [30, 42, 46], lineColor: [220, 225, 220] },
-      headStyles: { fillColor: [31, 111, 99], textColor: [255, 255, 255], fontStyle: 'bold' },
-      alternateRowStyles: { fillColor: [245, 247, 244] },
-      columnStyles: { 0: { cellWidth: 230 }, 1: { cellWidth: 'auto' } }
-    });
-    y = doc.lastAutoTable.finalY + 26;
-  });
-
-  return doc;
-}
-
-function handleSubmit(){
-  const missing = validate();
-  const errorBox = document.getElementById('errorList');
-  if(missing.length){
-    errorBox.classList.add('show');
-    errorBox.innerHTML = '<strong>Campos obrigatórios pendentes:</strong><br>' + missing.map(m => '• ' + m).join('<br>');
-    errorBox.scrollIntoView({behavior:'smooth', block:'center'});
-    return;
-  }
-  errorBox.classList.remove('show');
-
-  const rows = collectRows();
-  const codigo = document.getElementById('codigo').value.trim() || 'participante';
-  const fileName = `resultados_${codigo.replace(/\s+/g,'-')}.pdf`;
-  const doc = buildPdf(rows, codigo);
-  doc.save(fileName);
-
-  document.getElementById('fileNameOut').textContent = fileName;
-  const subject = encodeURIComponent(`Resultados Ensaio de Proficiência — ${codigo}`);
-  const body = encodeURIComponent(`Olá,\n\nSegue em anexo o arquivo com os resultados do ensaio de proficiência.\n\nCódigo do participante: ${codigo}\n\nNão esqueça de anexar o arquivo "${fileName}" que foi baixado para o seu computador.\n\nAtenciosamente,\n${document.getElementById('contato_nome').value.trim()}`);
-  document.getElementById('mailtoBtn').href = `mailto:${LAB_EMAIL}?subject=${subject}&body=${body}`;
-
-  const panel = document.getElementById('confirmPanel');
-  panel.classList.add('show');
-  panel.scrollIntoView({behavior:'smooth', block:'center'});
-}
-
-/* ---------------- Run on load (order matters: after all functions above are defined) ---------------- */
-buildCycles(document.getElementById('balaoCycles'), 'balao', 'balao',
-  {volume:'99,995', incerteza:'0,030', k:'2,00'}, true);
-
-buildCycles(document.getElementById('pipetaCycles'), 'pipeta', 'pipeta',
-  {volume:'10,006', incerteza:'0,011', k:'4,53'}, false);
-
-buildPointGroup(document.getElementById('buretaPoints'), 'bureta_1', 'bureta', 'Volume medido 1 mL', {volume:'1,000', incerteza:'0,010', k:'2,01'});
-buildPointGroup(document.getElementById('buretaPoints'), 'bureta_5', 'bureta', 'Volume medido 5 mL', {volume:'4,990', incerteza:'0,010', k:'2,02'});
-buildPointGroup(document.getElementById('buretaPoints'), 'bureta_10', 'bureta', 'Volume medido 10 mL', {volume:'9,980', incerteza:'0,010', k:'2,00'});
-
-buildPointGroup(document.getElementById('microPoints'), 'micro_10', 'micro', 'Volume medido 10 mL', {volume:'10,40', incerteza:'0,20', k:'2,00'});
-buildPointGroup(document.getElementById('microPoints'), 'micro_50', 'micro', 'Volume medido 50 mL', {volume:'50,50', incerteza:'0,20', k:'2,00'});
-buildPointGroup(document.getElementById('microPoints'), 'micro_100', 'micro', 'Volume medido 100 mL', {volume:'100,70', incerteza:'0,20', k:'2,00'});
-
-generateCode();
-document.addEventListener('input', updateProgress);
-updateProgress();
-</script>
+<script src="script.js"></script>
 </body>
 </html>
