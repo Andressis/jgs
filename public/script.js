@@ -302,6 +302,15 @@ function prepareLogoForPdf(){
 }
 
 /* ---------------- PDF generation ---------------- */
+// A fonte padrão do PDF (Helvetica) não tem o glifo do "μ" grego (U+03BC) usado
+// nos rótulos em tela — por isso ele saía quebrado/em branco no PDF. O "µ" (sinal
+// de micro, U+00B5) faz parte do conjunto de caracteres suportado, então convertemos
+// qualquer texto antes de desenhar no PDF.
+function toPdfText(value){
+  if(value === null || value === undefined) return value;
+  return String(value).replace(/μ/g, '\u00B5');
+}
+
 function buildPdf(rows, codigo){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
@@ -333,11 +342,12 @@ function buildPdf(rows, codigo){
   const sections = [];
   let current = null;
   rows.slice(1).forEach(([sec, label, value]) => {
-    if (!current || current.name !== sec) {
-      current = { name: sec, items: [] };
+    const secName = toPdfText(sec);
+    if (!current || current.name !== secName) {
+      current = { name: secName, items: [] };
       sections.push(current);
     }
-    current.items.push([label, value && String(value).trim() !== '' ? value : '—']);
+    current.items.push([toPdfText(label), value && String(value).trim() !== '' ? toPdfText(value) : '—']);
   });
 
   sections.forEach(sec => {
