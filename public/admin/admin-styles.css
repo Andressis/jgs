@@ -153,9 +153,16 @@ tbody tr:last-child td{ border-bottom:none; }
 tbody tr:hover{ background:#12191A; }
 td.codigo{ font-family:'IBM Plex Mono', monospace; color:var(--teal); font-weight:600; }
 td.muted{ color:var(--ink-soft); }
-td.actions{ display:flex; gap:8px; }
+td.actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  min-width:230px;
+}
+table{ min-width:900px; }
+.table-wrap{ padding-right:1px; }
 
-.pdf-btn, .xml-btn, .view-btn{
+.pdf-btn, .xlsx-btn, .view-btn{
   font-family:'IBM Plex Mono', monospace;
   font-size:12px;
   color:var(--paper);
@@ -164,10 +171,11 @@ td.actions{ display:flex; gap:8px; }
   padding:7px 14px;
   cursor:pointer;
   border-radius:var(--radius);
+  white-space:nowrap;
 }
-.pdf-btn:hover, .xml-btn:hover, .view-btn:hover{ background:var(--teal-deep); }
-.xml-btn{ background:var(--liquid); }
-.xml-btn:hover{ background:#4A8FC7; }
+.pdf-btn:hover, .xlsx-btn:hover, .view-btn:hover{ background:var(--teal-deep); }
+.xlsx-btn{ background:var(--liquid); }
+.xlsx-btn:hover{ background:#4A8FC7; }
 .view-btn{ background:transparent; color:var(--teal); border:1px solid var(--teal-deep); }
 .view-btn:hover{ background:#0E1A18; }
 .del-btn{
@@ -179,6 +187,7 @@ td.actions{ display:flex; gap:8px; }
   padding:7px 14px;
   cursor:pointer;
   border-radius:var(--radius);
+  white-space:nowrap;
 }
 .del-btn:hover{ background:#2A1512; }
 button:disabled{ opacity:.5; cursor:default; }

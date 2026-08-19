@@ -102,17 +102,8 @@ function buildPdf(rows, codigo){
   return doc;
 }
 
-/* ---------------- XML ---------------- */
-function escapeXml(value){
-  return String(value === undefined || value === null ? '' : value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
-
-function buildXml(rows, codigo, submission){
+/* ---------------- XLSX ---------------- */
+function buildXlsxWorkbook(rows, codigo, submission){
   const sections = [];
   let current = null;
   rows.slice(1).forEach(([sec, label, value]) => {
@@ -120,34 +111,28 @@ function buildXml(rows, codigo, submission){
       current = { name: sec, items: [] };
       sections.push(current);
     }
-    current.items.push([label, value]);
+    current.items.push([label, value && String(value).trim() !== '' ? value : '—']);
   });
 
-  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
-  xml += `<resultado codigo="${escapeXml(codigo)}">\n`;
-  xml += `  <cliente usuario="${escapeXml(submission.clientUsername || '')}">${escapeXml(submission.clientNome || '')}</cliente>\n`;
-  xml += `  <enviadoEm>${escapeXml(submission.createdAt || '')}</enviadoEm>\n`;
+  const aoa = [
+    ['Código do participante', codigo],
+    ['Cliente', submission.clientNome || submission.clientUsername || ''],
+    ['Enviado em', fmtDate(submission.createdAt)],
+    [],
+    ['Seção', 'Campo', 'Valor']
+  ];
   sections.forEach(sec => {
-    xml += `  <secao nome="${escapeXml(sec.name)}">\n`;
     sec.items.forEach(([label, value]) => {
-      xml += `    <campo nome="${escapeXml(label)}">${escapeXml(value)}</campo>\n`;
+      aoa.push([sec.name, label, value]);
     });
-    xml += `  </secao>\n`;
   });
-  xml += '</resultado>\n';
-  return xml;
-}
 
-function downloadTextFile(filename, content, mime){
-  const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = [{ wch: 30 }, { wch: 34 }, { wch: 24 }];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Resultados');
+  return wb;
 }
 
 /* ---------------- Modais ---------------- */
@@ -269,7 +254,7 @@ function renderTable(list){
       <td class="actions">
         <button class="view-btn" data-codigo="${sub.codigo}">Ver</button>
         <button class="pdf-btn" data-codigo="${sub.codigo}">PDF</button>
-        <button class="xml-btn" data-codigo="${sub.codigo}">XML</button>
+        <button class="xlsx-btn" data-codigo="${sub.codigo}">XLSX</button>
         <button class="del-btn" data-codigo="${sub.codigo}">Excluir</button>
       </td>
     `;
@@ -277,7 +262,7 @@ function renderTable(list){
   });
 
   tbody.querySelectorAll('.pdf-btn').forEach(btn => btn.addEventListener('click', () => downloadPdfFor(btn)));
-  tbody.querySelectorAll('.xml-btn').forEach(btn => btn.addEventListener('click', () => downloadXmlFor(btn)));
+  tbody.querySelectorAll('.xlsx-btn').forEach(btn => btn.addEventListener('click', () => downloadXlsxFor(btn)));
   tbody.querySelectorAll('.view-btn').forEach(btn => btn.addEventListener('click', () => viewSubmission(btn)));
   tbody.querySelectorAll('.del-btn').forEach(btn => btn.addEventListener('click', () => deleteSubmission(btn)));
 }
@@ -308,20 +293,20 @@ async function downloadPdfFor(btn){
   }
 }
 
-async function downloadXmlFor(btn){
+async function downloadXlsxFor(btn){
   const codigo = btn.dataset.codigo;
   btn.disabled = true;
   btn.textContent = 'Gerando...';
   try{
     const submission = await fetchSubmission(codigo);
     const rows = submission.rows || [];
-    const xml = buildXml(rows, codigo, submission);
-    downloadTextFile(`resultados_${codigo.replace(/\s+/g,'-')}.xml`, xml, 'application/xml');
+    const wb = buildXlsxWorkbook(rows, codigo, submission);
+    XLSX.writeFile(wb, `resultados_${codigo.replace(/\s+/g,'-')}.xlsx`);
   }catch(e){
-    alert(e.message || 'Erro de conexão ao gerar o XML.');
+    alert(e.message || 'Erro de conexão ao gerar o XLSX.');
   }finally{
     btn.disabled = false;
-    btn.textContent = 'XML';
+    btn.textContent = 'XLSX';
   }
 }
 
