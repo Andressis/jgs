@@ -3,140 +3,203 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Área administrativa — Ensaio de Proficiência</title>
+<title>Envio de Resultados — Ensaio de Proficiência</title>
+<script>
+  // Protege a página: sem sessão de cliente válida, manda direto pro login,
+  // antes de qualquer coisa ser desenhada na tela.
+  if(!localStorage.getItem('client_token')){
+    window.location.replace('login.html');
+  }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-<link rel="stylesheet" href="/styles.css">
-<link rel="stylesheet" href="admin-styles.css">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<img src="/logo.png" id="logoForPdf" alt="" style="display:none" crossorigin="anonymous">
+<div class="client-bar" id="clientBar">
+  <span id="clientBarName">Olá</span>
+  <button type="button" id="logoutBtn">Sair</button>
+</div>
 
-<div class="admin-wrap">
+<button id="testFillBtn" onclick="fillTestData()" title="Preencher formulário com dados de teste">⚡ dados de teste</button>
 
-  <!-- LOGIN -->
-  <div id="loginScreen" class="login-card">
-    <img src="/logo.png" alt="JGS Proficiência" class="brand-logo">
-    <h1>Área administrativa</h1>
-    <p class="hint">Digite a senha de acesso para ver os resultados enviados.</p>
-    <div class="field">
-      <input type="password" id="passwordInput" placeholder="Senha">
-    </div>
-    <button class="primary" id="loginBtn">Entrar</button>
-    <div class="error-msg" id="loginError"></div>
+<div class="mobile-progress">
+  <div class="wrap" style="padding:0;">
+    <div class="mobile-track"><div class="mobile-fill" id="mobileFill"></div></div>
+    <div class="mobile-progress-text"><span id="mobilePct">0%</span> preenchido</div>
   </div>
+</div>
 
-  <!-- PAINEL -->
-  <div id="panelScreen" style="display:none;">
-    <header class="admin-header">
-      <img src="/logo.png" alt="JGS Proficiência" class="brand-logo">
-      <h1>Área administrativa</h1>
-      <p class="hint">Envios recebidos e clientes com acesso ao formulário.</p>
-    </header>
+<div class="wrap">
 
-    <div class="tabs">
-      <button type="button" class="tab-btn active" data-tab="envios">Envios</button>
-      <button type="button" class="tab-btn" data-tab="clientes">Clientes</button>
+  <header class="hero">
+    <img src="logo.png" alt="JGS Proficiência" class="brand-logo">
+    <img src="logo.png" id="logoForPdf" alt="" style="display:none" crossorigin="anonymous">
+    <div class="eyebrow">Ensaio de Proficiência · Vidraria Volumétrica</div>
+    <h1>Envie os resultados<br>da <em>sua calibração</em>.</h1>
+    <p class="hero-sub">Preencha os valores obtidos para cada item de vidraria. Ao final, você baixa um arquivo PDF com os dados.</p>
+    <div class="hero-meta">
+      <div><b>4</b> Instrumentos</div>
+      <div><b>~</b></div>
+      <div>Campos não preenchidos são destacados <span style="color:var(--amber)">em amarelo</span> ao enviar</div>
     </div>
+  </header>
 
-    <!-- ABA: ENVIOS -->
-    <div class="tab-panel active" id="tab-envios">
-      <div class="toolbar">
-        <input type="text" id="searchInput" placeholder="Buscar por código, nome ou e-mail...">
-        <button class="secondary" id="refreshBtn">↻ Atualizar</button>
-        <span class="count" id="countLabel"></span>
-      </div>
+  <div class="layout">
+    <div>
 
-      <div class="table-wrap">
-        <table id="submissionsTable">
-          <thead>
-            <tr>
-              <th>Código</th>
-              <th>Razão social</th>
-              <th>E‑mail</th>
-              <th>Cliente (login)</th>
-              <th>Data da calibração</th>
-              <th>Enviado em</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="tableBody"></tbody>
-        </table>
-        <div id="emptyState" class="empty-state" style="display:none;">Nenhum envio encontrado ainda.</div>
-      </div>
-    </div>
-
-    <!-- ABA: CLIENTES -->
-    <div class="tab-panel" id="tab-clientes">
-
-      <div class="new-client-card">
-        <h3>Novo cliente</h3>
-        <div class="new-client-form">
-          <div class="field">
-            <label>Usuário (login)</label>
-            <input type="text" id="newClientUsername" placeholder="ex.: laboratorioxyz">
+      <!-- SECTION: Identificação -->
+      <section class="section open" data-section="ident">
+        <div class="section-head" onclick="toggleSection(this)">
+          <div class="section-titles">
+            <div class="section-tag">00 — Identificação</div>
+            <div class="section-name">Dados do participante</div>
           </div>
-          <div class="field">
-            <label>Nome / Razão social (opcional)</label>
-            <input type="text" id="newClientNome" placeholder="ex.: Laboratório XYZ Ltda">
-          </div>
-          <button class="primary" id="createClientBtn" style="width:auto;">Criar cliente</button>
+          <div class="section-status" data-status="ident">0/4</div>
+          <div class="chevron"></div>
         </div>
-        <div class="error-msg" id="newClientError"></div>
+        <div class="section-body">
+          <div class="section-inner">
+            <div class="field-grid">
+              <div class="field">
+                <label>Código do participante</label>
+                <div class="field-inline">
+                  <input type="text" data-section="ident" id="codigo" readonly>
+                  <button type="button" class="regen-btn" onclick="generateCode()" title="Gerar novo código" aria-label="Gerar novo código">↻</button>
+                </div>
+              </div>
+              <div class="field">
+                <label>Data da chegada</label>
+                <input type="date" data-section="ident" id="data_chegada">
+              </div>
+              <div class="field">
+                <label>Data da calibração</label>
+                <input type="date" data-section="ident" id="data_calibracao">
+              </div>
+              <div class="field">
+                <label>Data da saída</label>
+                <input type="date" data-section="ident" id="data_saida">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 1: Balão -->
+      <section class="section" data-section="balao">
+        <div class="section-head" onclick="toggleSection(this)">
+          <div class="section-titles">
+            <div class="section-tag">01 — Item de ensaio</div>
+            <div class="section-name">Balão Volumétrico de 100 mL</div>
+          </div>
+          <div class="section-status" data-status="balao">0/11</div>
+          <div class="chevron"></div>
+        </div>
+        <div class="section-body">
+          <div class="section-inner" id="balaoCycles"></div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: Pipeta -->
+      <section class="section" data-section="pipeta">
+        <div class="section-head" onclick="toggleSection(this)">
+          <div class="section-titles">
+            <div class="section-tag">02 — Item de ensaio</div>
+            <div class="section-name">Pipeta Volumétrica de 10 mL</div>
+          </div>
+          <div class="section-status" data-status="pipeta">0/9</div>
+          <div class="chevron"></div>
+        </div>
+        <div class="section-body">
+          <div class="section-inner" id="pipetaCycles"></div>
+        </div>
+      </section>
+
+      <!-- SECTION 3: Bureta -->
+      <section class="section" data-section="bureta">
+        <div class="section-head" onclick="toggleSection(this)">
+          <div class="section-titles">
+            <div class="section-tag">03 — Item de ensaio</div>
+            <div class="section-name">Bureta de Vidro de 10 mL</div>
+          </div>
+          <div class="section-status" data-status="bureta">0/30</div>
+          <div class="chevron"></div>
+        </div>
+        <div class="section-body">
+          <div class="section-inner" id="buretaPoints"></div>
+        </div>
+      </section>
+
+      <!-- SECTION 4: Micropipeta -->
+      <section class="section" data-section="micro">
+        <div class="section-head" onclick="toggleSection(this)">
+          <div class="section-titles">
+            <div class="section-tag">04 — Item de ensaio</div>
+            <div class="section-name">Micropipeta Graduada de 10 μL a 100 μL</div>
+          </div>
+          <div class="section-status" data-status="micro">0/27</div>
+          <div class="chevron"></div>
+        </div>
+        <div class="section-body">
+          <div class="section-inner" id="microPoints"></div>
+        </div>
+      </section>
+
+      <!-- SUBMIT -->
+      <div class="submit-card">
+        <h2>Finalizar envio</h2>
+        <p> <b> Informe seus dados de contato e gere o arquivo de resultados.</b></p>
+        <div class="field-grid">
+          <div class="field"><label>Razão social</label><input type="text" data-section="contato" id="contato_nome" placeholder="Razão social"></div>
+          <div class="field"><label>E‑mail</label><input type="email" data-section="contato" id="contato_email" placeholder="voce@empresa.com"></div>
+          <div class="field"><label>Telefone</label><input type="tel" data-section="contato" id="contato_telefone" placeholder="(41) 9xxxx-xxxx"></div>
+        </div>
+
+        <div class="error-list" id="errorList"></div>
+
+        <div class="submit-actions">
+          <button class="primary" onclick="handleSubmit()">Baixar resultados</button>
+          <span class="hint">Gera um arquivo .PDF com todos os dados preenchidos.</span>
+        </div>
+
+        <div id="confirmPanel">
+          <p>Arquivo baixado: <strong id="fileNameOut"></strong><br>Agora envie por e‑mail para o laboratório, com o arquivo em anexo.</p>
+        </div>
       </div>
 
-      <div class="toolbar">
-        <input type="text" id="clientSearchInput" placeholder="Buscar por usuário ou nome...">
-        <button class="secondary" id="refreshClientsBtn">↻ Atualizar</button>
-        <span class="count" id="clientCountLabel"></span>
-      </div>
-
-      <div class="table-wrap">
-        <table id="clientsTable">
-          <thead>
-            <tr>
-              <th>Usuário</th>
-              <th>Nome</th>
-              <th>Status</th>
-              <th>Senha</th>
-              <th>Criado em</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="clientsTableBody"></tbody>
-        </table>
-        <div id="clientsEmptyState" class="empty-state" style="display:none;">Nenhum cliente cadastrado ainda.</div>
-      </div>
     </div>
 
+    <!-- GAUGE -->
+    <div class="gauge-col">
+      <svg width="46" height="150" viewBox="0 0 46 150" fill="none" aria-hidden="true">
+        <defs>
+          <clipPath id="cylClip"><rect x="10" y="8" width="26" height="128" rx="2"/></clipPath>
+        </defs>
+        <rect x="10" y="8" width="26" height="128" rx="2" fill="var(--glass)" stroke="var(--paper)" stroke-width="1.6"/>
+        <g clip-path="url(#cylClip)">
+          <rect id="liquidRect" x="10" y="136" width="26" height="0" fill="var(--liquid)"/>
+        </g>
+        <rect x="10" y="8" width="26" height="128" rx="2" fill="none" stroke="var(--paper)" stroke-width="1.6"/>
+        <!-- tick marks -->
+        <g stroke="var(--paper)" stroke-width="1">
+          <line x1="10" y1="33" x2="15" y2="33"/>
+          <line x1="10" y1="58" x2="15" y2="58"/>
+          <line x1="10" y1="83" x2="15" y2="83"/>
+          <line x1="10" y1="108" x2="15" y2="108"/>
+        </g>
+        <rect x="6" y="2" width="34" height="8" rx="1" fill="var(--paper)"/>
+      </svg>
+      <div id="gaugePct">0%</div>
+      <div class="gauge-label">preenchido</div>
+    </div>
   </div>
 
+  <footer> <b> Ensaio de Proficiência — Vidraria Volumétrica </b> </footer>
 </div>
 
-<!-- MODAL: senha temporária -->
-<div class="modal-backdrop" id="tempPwModal">
-  <div class="modal-box">
-    <button type="button" class="modal-close" data-close="tempPwModal">&times;</button>
-    <h2 id="tempPwTitle">Senha temporária</h2>
-    <p class="modal-sub">Copie e envie esta senha ao cliente. Ela só é exibida uma vez — no primeiro login, ele será obrigado a criar uma senha definitiva.</p>
-    <div class="temp-pw-box" id="tempPwValue"></div>
-    <button class="secondary" type="button" data-close="tempPwModal" style="width:100%;">Fechar</button>
-  </div>
-</div>
-
-<!-- MODAL: detalhes do envio -->
-<div class="modal-backdrop" id="viewModal">
-  <div class="modal-box">
-    <button type="button" class="modal-close" data-close="viewModal">&times;</button>
-    <h2 id="viewTitle">Detalhes do envio</h2>
-    <p class="modal-sub" id="viewSub"></p>
-    <div id="viewContent"></div>
-  </div>
-</div>
-
-<script src="admin.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
