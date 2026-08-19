@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Área administrativa — Ensaio de Proficiência</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+
+<img src="/logo.png" id="logoForPdf" alt="" style="display:none" crossorigin="anonymous">
+
+<div class="admin-wrap">
+
+  <!-- LOGIN -->
+  <div id="loginScreen" class="login-card">
+    <img src="/logo.png" alt="JGS Proficiência" class="brand-logo">
+    <h1>Área administrativa</h1>
+    <p class="hint">Digite a senha de acesso para ver os resultados enviados.</p>
+    <div class="field">
+      <input type="password" id="passwordInput" placeholder="Senha">
+    </div>
+    <button class="primary" id="loginBtn">Entrar</button>
+    <div class="error-msg" id="loginError"></div>
+  </div>
+
+  <!-- PAINEL -->
+  <div id="panelScreen" style="display:none;">
+    <header class="admin-header">
+      <img src="/logo.png" alt="JGS Proficiência" class="brand-logo">
+      <h1>Área administrativa</h1>
+      <p class="hint">Envios recebidos e clientes com acesso ao formulário.</p>
+    </header>
+
+    <div class="tabs">
+      <button type="button" class="tab-btn active" data-tab="envios">Envios</button>
+      <button type="button" class="tab-btn" data-tab="clientes">Clientes</button>
+    </div>
+
+    <!-- ABA: ENVIOS -->
+    <div class="tab-panel active" id="tab-envios">
+      <div class="toolbar">
+        <input type="text" id="searchInput" placeholder="Buscar por código, nome ou e-mail...">
+        <button class="secondary" id="refreshBtn">↻ Atualizar</button>
+        <span class="count" id="countLabel"></span>
+      </div>
+
+      <div class="table-wrap">
+        <table id="submissionsTable">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Razão social</th>
+              <th>E‑mail</th>
+              <th>Cliente (login)</th>
+              <th>Data da calibração</th>
+              <th>Enviado em</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div id="emptyState" class="empty-state" style="display:none;">Nenhum envio encontrado ainda.</div>
+      </div>
+    </div>
+
+    <!-- ABA: CLIENTES -->
+    <div class="tab-panel" id="tab-clientes">
+
+      <div class="new-client-card">
+        <h3>Novo cliente</h3>
+        <div class="new-client-form">
+          <div class="field">
+            <label>Usuário (login)</label>
+            <input type="text" id="newClientUsername" placeholder="ex.: laboratorioxyz">
+          </div>
+          <div class="field">
+            <label>Nome / Razão social (opcional)</label>
+            <input type="text" id="newClientNome" placeholder="ex.: Laboratório XYZ Ltda">
+          </div>
+          <button class="primary" id="createClientBtn" style="width:auto;">Criar cliente</button>
+        </div>
+        <div class="error-msg" id="newClientError"></div>
+      </div>
+
+      <div class="toolbar">
+        <input type="text" id="clientSearchInput" placeholder="Buscar por usuário ou nome...">
+        <button class="secondary" id="refreshClientsBtn">↻ Atualizar</button>
+        <span class="count" id="clientCountLabel"></span>
+      </div>
+
+      <div class="table-wrap">
+        <table id="clientsTable">
+          <thead>
+            <tr>
+              <th>Usuário</th>
+              <th>Nome</th>
+              <th>Status</th>
+              <th>Senha</th>
+              <th>Criado em</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="clientsTableBody"></tbody>
+        </table>
+        <div id="clientsEmptyState" class="empty-state" style="display:none;">Nenhum cliente cadastrado ainda.</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- MODAL: senha temporária -->
+<div class="modal-backdrop" id="tempPwModal">
+  <div class="modal-box">
+    <button type="button" class="modal-close" data-close="tempPwModal">&times;</button>
+    <h2 id="tempPwTitle">Senha temporária</h2>
+    <p class="modal-sub">Copie e envie esta senha ao cliente. Ela só é exibida uma vez — no primeiro login, ele será obrigado a criar uma senha definitiva.</p>
+    <div class="temp-pw-box" id="tempPwValue"></div>
+    <button class="secondary" type="button" data-close="tempPwModal" style="width:100%;">Fechar</button>
+  </div>
+</div>
+
+<!-- MODAL: detalhes do envio -->
+<div class="modal-backdrop" id="viewModal">
+  <div class="modal-box">
+    <button type="button" class="modal-close" data-close="viewModal">&times;</button>
+    <h2 id="viewTitle">Detalhes do envio</h2>
+    <p class="modal-sub" id="viewSub"></p>
+    <div id="viewContent"></div>
+  </div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>
