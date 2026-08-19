@@ -1,6 +1,43 @@
 /* ---------------- CONFIG ---------------- */
 const LAB_EMAIL = "contato@seulaboratorio.com.br"; // <-- troque pelo e-mail do laboratório
 
+/* ---------------- Sessão do cliente ---------------- */
+const CLIENT_TOKEN_KEY = 'client_token';
+const CLIENT_NOME_KEY = 'client_nome';
+
+function getClientToken(){ return localStorage.getItem(CLIENT_TOKEN_KEY); }
+
+function logoutClient(){
+  const token = getClientToken();
+  localStorage.removeItem(CLIENT_TOKEN_KEY);
+  localStorage.removeItem(CLIENT_NOME_KEY);
+  if (token) {
+    fetch('/api/client/logout', { method:'POST', headers:{ 'x-client-token': token } }).catch(() => {});
+  }
+  window.location.replace('login.html');
+}
+
+async function verifyClientSession(){
+  const token = getClientToken();
+  if (!token) { window.location.replace('login.html'); return; }
+
+  try{
+    const resp = await fetch('/api/client/me', { headers: { 'x-client-token': token } });
+    const data = await resp.json();
+    if (!resp.ok || !data.ok || data.mustChangePassword) {
+      localStorage.removeItem(CLIENT_TOKEN_KEY);
+      localStorage.removeItem(CLIENT_NOME_KEY);
+      window.location.replace('login.html');
+      return;
+    }
+    localStorage.setItem(CLIENT_NOME_KEY, data.nome);
+    const nameEl = document.getElementById('clientBarName');
+    if (nameEl) nameEl.textContent = `Olá, ${data.nome}`;
+  }catch(e){
+    window.location.replace('login.html');
+  }
+}
+
 /* ---------------- Auto-generated participant code (nunca se repete) ----------------
    Todos os códigos já exibidos ficam guardados no localStorage deste navegador.
    Antes de mostrar um novo código, ele é conferido contra essa lista; se já existir,
@@ -388,7 +425,7 @@ async function saveResultsToDatabase(rows, codigo){
   try{
     const resp = await fetch('/api/save-results', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-client-token': getClientToken() },
       body: JSON.stringify({
         codigo,
         fields: collectFieldsAsObject(),
@@ -397,6 +434,13 @@ async function saveResultsToDatabase(rows, codigo){
     });
     if(!resp.ok){
       const errData = await resp.json().catch(() => ({}));
+      if (resp.status === 401) {
+        // sessão inválida/expirada — manda de volta pro login
+        localStorage.removeItem(CLIENT_TOKEN_KEY);
+        localStorage.removeItem(CLIENT_NOME_KEY);
+        window.location.replace('login.html');
+        return false;
+      }
       console.error('Falha ao salvar no banco de dados:', errData.error || resp.status);
       return false;
     }
@@ -466,6 +510,8 @@ buildPointGroup(document.getElementById('microPoints'), 'micro_100', 'micro', 'V
 
 generateCode();
 prepareLogoForPdf();
+verifyClientSession();
+document.getElementById('logoutBtn') && document.getElementById('logoutBtn').addEventListener('click', logoutClient);
 document.addEventListener('input', (e) => {
   updateProgress();
   // remove o destaque amarelo assim que o campo é preenchido

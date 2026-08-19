@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Envio de Resultados — Ensaio de Proficiência</title>
+<script>
+  // Protege a página: sem sessão de cliente válida, manda direto pro login,
+  // antes de qualquer coisa ser desenhada na tela.
+  if(!localStorage.getItem('client_token')){
+    window.location.replace('login.html');
+  }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -11,6 +18,11 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+
+<div class="client-bar" id="clientBar">
+  <span id="clientBarName">Olá</span>
+  <button type="button" id="logoutBtn">Sair</button>
+</div>
 
 <button id="testFillBtn" onclick="fillTestData()" title="Preencher formulário com dados de teste">⚡ dados de teste</button>
 
