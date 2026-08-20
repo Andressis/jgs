@@ -167,8 +167,7 @@ app.post('/api/client/logout', requireClient, async (req, res) => {
 /* =========================================================================
    Envio de resultados — agora exige login do cliente
    ========================================================================= */
-app.post('/api/save-results', requireClient, async (req, res) => {
-  try {
+app.post('/api/save-results', requireClient, async (req, res) => {  try {
     if (req.client.mustChangePassword) {
       return res.status(403).json({ ok:false, error:'Defina sua senha definitiva antes de enviar resultados.' });
     }
@@ -212,6 +211,47 @@ app.post('/api/save-results', requireClient, async (req, res) => {
 
 // health check simples — útil para o Render confirmar que o serviço está de pé
 app.get('/api/health', (req, res) => res.status(200).json({ ok: true }));
+
+/* =========================================================================
+   "Meus ensaios" — o cliente vê apenas os próprios envios
+   ========================================================================= */
+
+// Lista resumida dos envios do cliente logado, mais recentes primeiro
+app.get('/api/client/submissions', requireClient, async (req, res) => {
+  try {
+    const database = await connectToMongo();
+    const docs = await database.collection('submissions')
+      .find(
+        { clientUsername: req.client.username },
+        { projection: {
+          codigo: 1, createdAt: 1, clientNome: 1,
+          'fields.tecnico_nome': 1, 'fields.data_calibracao': 1
+        } }
+      )
+      .sort({ createdAt: -1 })
+      .toArray();
+    res.status(200).json({ ok: true, submissions: docs });
+  } catch (err) {
+    console.error('Erro ao listar os envios do cliente:', err);
+    res.status(500).json({ ok: false, error: 'Erro interno ao listar os envios.' });
+  }
+});
+
+// Dados completos de um envio específico do próprio cliente (visualização + PDF)
+app.get('/api/client/submissions/:codigo', requireClient, async (req, res) => {
+  try {
+    const database = await connectToMongo();
+    const doc = await database.collection('submissions').findOne({
+      codigo: req.params.codigo,
+      clientUsername: req.client.username // impede um cliente de ver o envio de outro
+    });
+    if (!doc) return res.status(404).json({ ok: false, error: 'Envio não encontrado.' });
+    res.status(200).json({ ok: true, submission: doc });
+  } catch (err) {
+    console.error('Erro ao buscar o envio do cliente:', err);
+    res.status(500).json({ ok: false, error: 'Erro interno ao buscar o envio.' });
+  }
+});
 
 /* =========================================================================
    Área administrativa (protegida por senha)
