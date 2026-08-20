@@ -249,7 +249,7 @@ app.get('/api/admin/submissions', requireAdmin, async (req, res) => {
     const docs = await database.collection('submissions')
       .find({}, { projection: {
         codigo: 1, createdAt: 1, clientUsername: 1, clientNome: 1,
-        'fields.contato_nome': 1, 'fields.contato_email': 1, 'fields.data_calibracao': 1
+        'fields.tecnico_nome': 1, 'fields.data_calibracao': 1
       } })
       .sort({ createdAt: -1 })
       .toArray();

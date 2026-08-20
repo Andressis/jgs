@@ -461,6 +461,52 @@
     min-height:16px;
   }
 
+  /* ---------- Tela de sucesso pós-envio ---------- */
+  .success-screen{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:100;
+    background:var(--paper);
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .success-screen.show{ display:flex; }
+  .success-box{
+    max-width:480px;
+    width:100%;
+    text-align:center;
+    background:var(--card);
+    border:1px solid var(--ink);
+    padding:48px 36px;
+  }
+  .success-check{
+    width:64px;
+    height:64px;
+    line-height:64px;
+    margin:0 auto 20px;
+    border-radius:50%;
+    background:var(--teal);
+    color:var(--paper);
+    font-size:32px;
+    font-weight:700;
+  }
+  .success-box h1{
+    font-size:24px;
+    margin:0 0 14px;
+  }
+  .success-box p{
+    color:var(--ink-soft);
+    font-size:14px;
+    margin:0 0 8px;
+  }
+  .success-box .success-file{
+    font-size:12.5px;
+    margin-bottom:26px;
+  }
+  .success-box strong{ color:var(--teal); }
+
   /* ---------- Barra do cliente logado ---------- */
   .client-bar{
     position:fixed;

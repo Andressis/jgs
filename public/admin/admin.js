@@ -148,6 +148,64 @@ document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
   });
 });
 
+/* ---------------- Copiar senha temporária ----------------
+   O X no canto do modal é a única forma de fechar; o botão principal só copia.
+   A senha também fica em cache neste navegador (localStorage) enquanto o cliente
+   não faz o primeiro acesso, para exibir o botão "Copiar senha" na aba Clientes. */
+async function copyToClipboard(text){
+  try{
+    await navigator.clipboard.writeText(text);
+    return true;
+  }catch(e){
+    // fallback para navegadores sem permissão/Clipboard API
+    try{
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      return true;
+    }catch(e2){
+      return false;
+    }
+  }
+}
+
+function flashButtonCopied(btn, originalText){
+  const prev = originalText !== undefined ? originalText : btn.textContent;
+  btn.textContent = 'Copiado!';
+  setTimeout(() => { btn.textContent = prev; }, 1600);
+}
+
+document.getElementById('copyTempPwBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('copyTempPwBtn');
+  const value = document.getElementById('tempPwValue').textContent;
+  const ok = await copyToClipboard(value);
+  flashButtonCopied(btn, 'Copiar');
+  if (!ok) alert('Não foi possível copiar automaticamente. Selecione a senha manualmente.');
+});
+
+const TEMP_PW_CACHE_KEY = 'admin_temp_pw_cache';
+
+function getTempPwCache(){
+  try{
+    return JSON.parse(localStorage.getItem(TEMP_PW_CACHE_KEY) || '{}');
+  }catch(e){ return {}; }
+}
+function setTempPwCache(username, password){
+  const cache = getTempPwCache();
+  cache[username] = password;
+  localStorage.setItem(TEMP_PW_CACHE_KEY, JSON.stringify(cache));
+}
+function removeTempPwCache(username){
+  const cache = getTempPwCache();
+  delete cache[username];
+  localStorage.setItem(TEMP_PW_CACHE_KEY, JSON.stringify(cache));
+}
+
 /* ---------------- Login ---------------- */
 async function tryLogin(){
   const input = document.getElementById('passwordInput');
@@ -239,15 +297,15 @@ function renderTable(list){
 
   list.forEach(sub => {
     const tr = document.createElement('tr');
-    const nome = (sub.fields && sub.fields.contato_nome) || '—';
-    const email = (sub.fields && sub.fields.contato_email) || '—';
+    const razaoSocial = sub.clientNome || sub.clientUsername || '—';
+    const tecnico = (sub.fields && sub.fields.tecnico_nome) || '—';
     const dataCalib = (sub.fields && sub.fields.data_calibracao) || '—';
-    const cliente = sub.clientNome || sub.clientUsername || '—';
+    const cliente = sub.clientUsername || '—';
 
     tr.innerHTML = `
       <td class="codigo">${sub.codigo}</td>
-      <td>${nome}</td>
-      <td class="muted">${email}</td>
+      <td>${razaoSocial}</td>
+      <td class="muted">${tecnico}</td>
       <td class="muted">${cliente}</td>
       <td class="muted">${dataCalib}</td>
       <td class="muted">${fmtDate(sub.createdAt)}</td>
@@ -387,10 +445,10 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
     return;
   }
   const filtered = allSubmissions.filter(sub => {
-    const nome = ((sub.fields && sub.fields.contato_nome) || '').toLowerCase();
-    const email = ((sub.fields && sub.fields.contato_email) || '').toLowerCase();
-    const cliente = ((sub.clientNome || sub.clientUsername) || '').toLowerCase();
-    return sub.codigo.toLowerCase().includes(q) || nome.includes(q) || email.includes(q) || cliente.includes(q);
+    const razaoSocial = ((sub.clientNome || sub.clientUsername) || '').toLowerCase();
+    const tecnico = ((sub.fields && sub.fields.tecnico_nome) || '').toLowerCase();
+    const cliente = (sub.clientUsername || '').toLowerCase();
+    return sub.codigo.toLowerCase().includes(q) || razaoSocial.includes(q) || tecnico.includes(q) || cliente.includes(q);
   });
   renderTable(filtered);
 });
@@ -431,6 +489,8 @@ function renderClientsTable(list){
   }
   emptyState.style.display = 'none';
 
+  const pwCache = getTempPwCache();
+
   list.forEach(client => {
     const tr = document.createElement('tr');
     const statusBadge = client.active
@@ -440,6 +500,16 @@ function renderClientsTable(list){
       ? '<span class="badge warn">Aguardando 1º acesso</span>'
       : '<span class="badge ok">Definida</span>';
 
+    // O botão "Copiar senha" só existe enquanto o cliente não fez o 1º acesso
+    // (mustChangePassword ainda true) E a senha temporária foi gerada neste navegador.
+    const hasCachedPw = client.mustChangePassword && pwCache[client.username];
+    if (!client.mustChangePassword && pwCache[client.username]) {
+      removeTempPwCache(client.username); // cliente já trocou a senha — some o botão pra sempre
+    }
+    const copyPwBtn = hasCachedPw
+      ? `<button class="view-btn" data-action="copypw" data-username="${client.username}">Copiar senha</button>`
+      : '';
+
     tr.innerHTML = `
       <td class="codigo">${client.username}</td>
       <td>${client.nome || '—'}</td>
@@ -447,6 +517,7 @@ function renderClientsTable(list){
       <td>${pwBadge}</td>
       <td class="muted">${fmtDate(client.createdAt)}</td>
       <td class="actions">
+        ${copyPwBtn}
         <button class="view-btn" data-action="reset" data-username="${client.username}">Resetar senha</button>
         <button class="view-btn" data-action="toggle" data-username="${client.username}" data-active="${client.active}">${client.active ? 'Desativar' : 'Ativar'}</button>
         <button class="del-btn" data-action="delete" data-username="${client.username}">Excluir</button>
@@ -455,9 +526,20 @@ function renderClientsTable(list){
     tbody.appendChild(tr);
   });
 
+  tbody.querySelectorAll('[data-action="copypw"]').forEach(btn => btn.addEventListener('click', () => copyClientTempPassword(btn)));
   tbody.querySelectorAll('[data-action="reset"]').forEach(btn => btn.addEventListener('click', () => resetClientPassword(btn)));
   tbody.querySelectorAll('[data-action="toggle"]').forEach(btn => btn.addEventListener('click', () => toggleClientActive(btn)));
   tbody.querySelectorAll('[data-action="delete"]').forEach(btn => btn.addEventListener('click', () => deleteClient(btn)));
+}
+
+async function copyClientTempPassword(btn){
+  const username = btn.dataset.username;
+  const cache = getTempPwCache();
+  const pwd = cache[username];
+  if (!pwd) { alert('Senha temporária não disponível neste navegador. Use "Resetar senha" para gerar uma nova.'); return; }
+  const ok = await copyToClipboard(pwd);
+  flashButtonCopied(btn, 'Copiar senha');
+  if (!ok) alert('Não foi possível copiar automaticamente.');
 }
 
 document.getElementById('createClientBtn').addEventListener('click', async () => {
@@ -490,6 +572,7 @@ document.getElementById('createClientBtn').addEventListener('click', async () =>
     }
     usernameInput.value = '';
     nomeInput.value = '';
+    setTempPwCache(data.username, data.tempPassword);
     loadClients();
 
     document.getElementById('tempPwTitle').textContent = `Senha temporária — ${data.username}`;
@@ -519,6 +602,7 @@ async function resetClientPassword(btn){
       alert(data.error || 'Erro ao resetar a senha.');
       return;
     }
+    setTempPwCache(username, data.tempPassword);
     loadClients();
     document.getElementById('tempPwTitle').textContent = `Nova senha temporária — ${username}`;
     document.getElementById('tempPwValue').textContent = data.tempPassword;

@@ -1,9 +1,8 @@
-/* ---------------- CONFIG ---------------- */
-const LAB_EMAIL = "contato@seulaboratorio.com.br"; // <-- troque pelo e-mail do laboratório
-
 /* ---------------- Sessão do cliente ---------------- */
 const CLIENT_TOKEN_KEY = 'client_token';
 const CLIENT_NOME_KEY = 'client_nome';
+
+let clientNome = ''; // razão social puxada do login, preenchida em verifyClientSession()
 
 function getClientToken(){ return localStorage.getItem(CLIENT_TOKEN_KEY); }
 
@@ -31,8 +30,12 @@ async function verifyClientSession(){
       return;
     }
     localStorage.setItem(CLIENT_NOME_KEY, data.nome);
+    clientNome = data.nome || data.username || '';
     const nameEl = document.getElementById('clientBarName');
     if (nameEl) nameEl.textContent = `Olá, ${data.nome}`;
+    const razaoInput = document.getElementById('razao_social');
+    if (razaoInput) razaoInput.value = clientNome;
+    updateProgress();
   }catch(e){
     window.location.replace('login.html');
   }
@@ -115,40 +118,37 @@ function fillTestData(){
     document.getElementById(`${prefix}_veff`).value = pick(veffOptions);
     setEnv(prefix);
   };
-  const setCycles = (idPrefix, volMin, volMax, incMin, incMax, withMass, withEscoamento) => {
+  const setCycles = (idPrefix, volMin, volMax, incMin, incMax, withMass) => {
     ['1'].forEach(c => {
       const p = `${idPrefix}_c${c}`;
       if (withMass) {
         document.getElementById(`${p}_massa_vazia`).value = rnd(51, 52, 4);
         document.getElementById(`${p}_massa_cheia`).value = rnd(151, 152, 4);
       }
-      if (withEscoamento) {
-        document.getElementById(`${p}_tempo_escoamento`).value = rnd(15, 40, 1);
-      }
       setMeasure(p, volMin, volMax, incMin, incMax);
     });
   };
 
   // Balão (1 ciclo)
-  setCycles('balao', 99.9, 100.1, 0.01, 0.05, true, false);
+  setCycles('balao', 99.9, 100.1, 0.01, 0.05, true);
 
   // Pipeta (1 ciclo)
-  setCycles('pipeta', 9.9, 10.1, 0.005, 0.02, false, false);
+  setCycles('pipeta', 9.9, 10.1, 0.005, 0.02, false);
 
-  // Bureta (3 pontos × 1 ciclo)
-  setCycles('bureta_1', 0.95, 1.05, 0.005, 0.02, false, true);
-  setCycles('bureta_5', 4.9, 5.1, 0.005, 0.02, false, true);
-  setCycles('bureta_10', 9.9, 10.1, 0.005, 0.02, false, true);
+  // Bureta — tempo de escoamento único + 3 pontos × 1 ciclo
+  const buretaEsc = document.getElementById('bureta_tempo_escoamento');
+  if (buretaEsc) buretaEsc.value = rnd(15, 40, 1);
+  setCycles('bureta_1', 0.95, 1.05, 0.005, 0.02, false);
+  setCycles('bureta_5', 4.9, 5.1, 0.005, 0.02, false);
+  setCycles('bureta_10', 9.9, 10.1, 0.005, 0.02, false);
 
   // Micropipeta (3 pontos × 1 ciclo)
-  setCycles('micro_10', 10.0, 10.6, 0.1, 0.3, false, false);
-  setCycles('micro_50', 49.8, 50.6, 0.1, 0.3, false, false);
-  setCycles('micro_100', 99.8, 101.2, 0.1, 0.4, false, false);
+  setCycles('micro_10', 10.0, 10.6, 0.1, 0.3, false);
+  setCycles('micro_50', 49.8, 50.6, 0.1, 0.3, false);
+  setCycles('micro_100', 99.8, 101.2, 0.1, 0.4, false);
 
   // Contato
-  document.getElementById('contato_nome').value = 'Laboratório Exemplo Ltda';
-  document.getElementById('contato_email').value = 'teste@exemplo.com.br';
-  document.getElementById('contato_telefone').value = '(41) 90000-0000';
+  document.getElementById('tecnico_nome').value = 'Técnico de Teste';
 
   document.querySelectorAll('.section').forEach(s => s.classList.add('open'));
   updateProgress();
@@ -156,14 +156,11 @@ function fillTestData(){
 
 /* ---------------- Build measurement fields ----------------
    unit: unidade de volume exibida nos rótulos (ex.: 'mL' ou 'μL')
-   withMass: inclui campos de massa vazia/cheia (Balão)
-   withEscoamento: inclui campo de tempo de escoamento em segundos (Bureta) */
-function buildCycleFields(prefix, sectionKey, placeholders, withMass, unit = 'mL', withEscoamento = false){
+   withMass: inclui campos de massa vazia/cheia (Balão) */
+function buildCycleFields(prefix, sectionKey, placeholders, withMass, unit = 'mL'){
   const massFields = withMass ? `
           <div class="field"><label>Massa vazio e seco (g)</label><input type="number" step="any" data-section="${sectionKey}" id="${prefix}_massa_vazia" placeholder="51,86"></div>
           <div class="field"><label>Média massa cheio (g)</label><input type="number" step="any" data-section="${sectionKey}" id="${prefix}_massa_cheia" placeholder="151,56"></div>` : '';
-  const escoamentoField = withEscoamento ? `
-          <div class="field"><label>Tempo de Escoamento (s)</label><input type="number" step="any" data-section="${sectionKey}" id="${prefix}_tempo_escoamento" placeholder="28,5"></div>` : '';
   return `
     <div class="split">
       <div>
@@ -172,7 +169,7 @@ function buildCycleFields(prefix, sectionKey, placeholders, withMass, unit = 'mL
           <div class="field"><label>Volume medido (${unit})</label><input type="number" step="any" data-section="${sectionKey}" id="${prefix}_volume" placeholder="${placeholders.volume}"></div>
           <div class="field"><label>Incerteza de medição (${unit})</label><input type="number" step="any" data-section="${sectionKey}" id="${prefix}_incerteza" placeholder="${placeholders.incerteza}"></div>
           <div class="field"><label>k</label><input type="number" step="any" data-section="${sectionKey}" id="${prefix}_k" placeholder="${placeholders.k}"></div>
-          <div class="field"><label>Veff</label><input type="text" data-section="${sectionKey}" id="${prefix}_veff" placeholder="ex.: 2 ou infinito"></div>${escoamentoField}
+          <div class="field"><label>Veff</label><input type="text" data-section="${sectionKey}" id="${prefix}_veff" placeholder="ex.: 2 ou infinito"></div>
         </div>
       </div>
       <div>
@@ -189,25 +186,37 @@ function buildCycleFields(prefix, sectionKey, placeholders, withMass, unit = 'mL
   `;
 }
 
-function buildCycleBlock(container, prefix, sectionKey, label, placeholders, withMass, unit = 'mL', withEscoamento = false){
+function buildCycleBlock(container, prefix, sectionKey, label, placeholders, withMass, unit = 'mL'){
   const div = document.createElement('div');
   div.className = 'point';
-  div.innerHTML = `<div class="point-title">${label}</div>` + buildCycleFields(prefix, sectionKey, placeholders, withMass, unit, withEscoamento);
+  div.innerHTML = `<div class="point-title">${label}</div>` + buildCycleFields(prefix, sectionKey, placeholders, withMass, unit);
   container.appendChild(div);
 }
 
 // For single-point instruments (Balão, Pipeta): 1 ciclo de medição diretamente na seção.
 function buildCycles(container, idPrefix, sectionKey, placeholders, withMass, unit = 'mL'){
-  buildCycleBlock(container, `${idPrefix}_c1`, sectionKey, 'Medição', placeholders, withMass, unit, false);
+  buildCycleBlock(container, `${idPrefix}_c1`, sectionKey, 'Medição', placeholders, withMass, unit);
 }
 
 // For multi-point instruments (Bureta, Micropipeta): each point gets 1 ciclo de medição.
-function buildPointGroup(container, pointPrefix, sectionKey, pointLabel, placeholders, unit = 'mL', withEscoamento = false){
+function buildPointGroup(container, pointPrefix, sectionKey, pointLabel, placeholders, unit = 'mL'){
   const wrapper = document.createElement('div');
   wrapper.className = 'point-group';
   wrapper.innerHTML = `<div class="point-group-title">${pointLabel}</div>`;
   container.appendChild(wrapper);
-  buildCycleBlock(wrapper, `${pointPrefix}_c1`, sectionKey, 'Medição', placeholders, false, unit, withEscoamento);
+  buildCycleBlock(wrapper, `${pointPrefix}_c1`, sectionKey, 'Medição', placeholders, false, unit);
+}
+
+// Campo único de "Tempo de Escoamento (s)" para a Bureta, exibido uma vez só,
+// acima do primeiro ponto ("Volume medido 1 mL") — vale para todos os pontos.
+function buildBuretaEscoamentoField(container){
+  const div = document.createElement('div');
+  div.className = 'field-grid';
+  div.style.marginBottom = '4px';
+  div.innerHTML = `
+    <div class="field"><label>Tempo de Escoamento (s) — vale para todos os pontos</label><input type="number" step="any" data-section="bureta" id="bureta_tempo_escoamento" placeholder="28,5"></div>
+  `;
+  container.appendChild(div);
 }
 
 /* ---------------- Section toggle ---------------- */
@@ -263,7 +272,7 @@ function collectRows(){
   rows.push(['Identificação','Data da calibração', g('data_calibracao')]);
   rows.push(['Identificação','Data da saída', g('data_saida')]);
 
-  const cycleFields = (prefix, withMass, unit = 'mL', withEscoamento = false) => {
+  const cycleFields = (prefix, withMass, unit = 'mL') => {
     const f = [];
     if (withMass) {
       f.push(['Massa vazio e seco (g)', `${prefix}_massa_vazia`]);
@@ -273,12 +282,7 @@ function collectRows(){
       [`Volume medido (${unit})`, `${prefix}_volume`],
       [`Incerteza de medição (${unit})`, `${prefix}_incerteza`],
       ['k', `${prefix}_k`],
-      ['Veff', `${prefix}_veff`]
-    );
-    if (withEscoamento) {
-      f.push(['Tempo de Escoamento (s)', `${prefix}_tempo_escoamento`]);
-    }
-    f.push(
+      ['Veff', `${prefix}_veff`],
       ['Temperatura água (°C)', `${prefix}_temp_agua`],
       ['Temperatura ambiente (°C)', `${prefix}_temp_amb`],
       ['Umidade relativa (%)', `${prefix}_umidade`],
@@ -288,25 +292,25 @@ function collectRows(){
     return f;
   };
 
-  const addCycle = (sectionLabel, idPrefix, withMass, unit = 'mL', withEscoamento = false) => {
+  const addCycle = (sectionLabel, idPrefix, withMass, unit = 'mL') => {
     const p = `${idPrefix}_c1`;
-    cycleFields(p, withMass, unit, withEscoamento).forEach(([label, id]) => rows.push([sectionLabel, `Medição — ${label}`, g(id)]));
+    cycleFields(p, withMass, unit).forEach(([label, id]) => rows.push([sectionLabel, `Medição — ${label}`, g(id)]));
   };
 
   addCycle('Balão Volumétrico de 100 mL', 'balao', true);
   addCycle('Pipeta Volumétrica de 10 mL', 'pipeta', false);
 
+  rows.push(['Bureta de Vidro de 10 mL', 'Tempo de Escoamento (s) — vale para todos os pontos', g('bureta_tempo_escoamento')]);
   ['1','5','10'].forEach(pt => {
-    addCycle(`Bureta de Vidro de 10 mL — ${pt} mL`, `bureta_${pt}`, false, 'mL', true);
+    addCycle(`Bureta de Vidro de 10 mL — ${pt} mL`, `bureta_${pt}`, false, 'mL');
   });
 
   ['10','50','100'].forEach(pt => {
     addCycle(`Micropipeta Graduada de 10 μL a 100 μL — ${pt} μL`, `micro_${pt}`, false, 'μL');
   });
 
-  rows.push(['Contato','Nome / Empresa', g('contato_nome')]);
-  rows.push(['Contato','E-mail', g('contato_email')]);
-  rows.push(['Contato','Telefone', g('contato_telefone')]);
+  rows.push(['Contato','Razão social', clientNome]);
+  rows.push(['Contato','Técnico responsável', g('tecnico_nome')]);
 
   return rows;
 }
@@ -452,7 +456,17 @@ async function saveResultsToDatabase(rows, codigo){
   }
 }
 
-function handleSubmit(){
+function showSuccessScreen(codigo, fileName){
+  document.getElementById('successCodigo').textContent = codigo;
+  document.getElementById('successFileName').textContent = fileName;
+  document.getElementById('successScreen').classList.add('show');
+}
+
+document.getElementById('successNewBtn') && document.getElementById('successNewBtn').addEventListener('click', () => {
+  window.location.reload();
+});
+
+async function handleSubmit(){
   // limpa marcações amarelas de uma tentativa anterior
   document.querySelectorAll('.field-grid input.missing').forEach(i => i.classList.remove('missing'));
 
@@ -480,17 +494,22 @@ function handleSubmit(){
   const doc = buildPdf(rows, codigo);
   doc.save(fileName);
 
-  // Salva os dados no MongoDB Atlas (não bloqueia nem atrasa o download do PDF acima).
-  saveResultsToDatabase(rows, codigo);
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Enviando...';
 
-  document.getElementById('fileNameOut').textContent = fileName;
-  const subject = encodeURIComponent(`Resultados Ensaio de Proficiência — ${codigo}`);
-  const body = encodeURIComponent(`Olá,\n\nSegue em anexo o arquivo com os resultados do ensaio de proficiência.\n\nCódigo do participante: ${codigo}\n\nNão esqueça de anexar o arquivo "${fileName}" que foi baixado para o seu computador.\n\nAtenciosamente,\n${document.getElementById('contato_nome').value.trim()}`);
-  document.getElementById('mailtoBtn').href = `mailto:${LAB_EMAIL}?subject=${subject}&body=${body}`;
+  const saved = await saveResultsToDatabase(rows, codigo);
 
-  const panel = document.getElementById('confirmPanel');
-  panel.classList.add('show');
-  panel.scrollIntoView({behavior:'smooth', block:'center'});
+  submitBtn.disabled = false;
+  submitBtn.textContent = 'Enviar resultados';
+
+  if (saved) {
+    showSuccessScreen(codigo, fileName);
+  } else {
+    errorBox.classList.add('show');
+    errorBox.innerHTML = `<strong>O PDF foi baixado, mas houve uma falha ao enviar os resultados para a JGS.</strong> Verifique sua conexão e clique em "Enviar resultados" novamente.`;
+    errorBox.scrollIntoView({behavior:'smooth', block:'center'});
+  }
 }
 
 /* ---------------- Run on load (order matters: after all functions above are defined) ---------------- */
@@ -500,9 +519,10 @@ buildCycles(document.getElementById('balaoCycles'), 'balao', 'balao',
 buildCycles(document.getElementById('pipetaCycles'), 'pipeta', 'pipeta',
   {volume:'10,006', incerteza:'0,011', k:'4,53'}, false, 'mL');
 
-buildPointGroup(document.getElementById('buretaPoints'), 'bureta_1', 'bureta', 'Volume medido 1 mL', {volume:'1,000', incerteza:'0,010', k:'2,01'}, 'mL', true);
-buildPointGroup(document.getElementById('buretaPoints'), 'bureta_5', 'bureta', 'Volume medido 5 mL', {volume:'4,990', incerteza:'0,010', k:'2,02'}, 'mL', true);
-buildPointGroup(document.getElementById('buretaPoints'), 'bureta_10', 'bureta', 'Volume medido 10 mL', {volume:'9,980', incerteza:'0,010', k:'2,00'}, 'mL', true);
+buildBuretaEscoamentoField(document.getElementById('buretaPoints'));
+buildPointGroup(document.getElementById('buretaPoints'), 'bureta_1', 'bureta', 'Volume medido 1 mL', {volume:'1,000', incerteza:'0,010', k:'2,01'}, 'mL');
+buildPointGroup(document.getElementById('buretaPoints'), 'bureta_5', 'bureta', 'Volume medido 5 mL', {volume:'4,990', incerteza:'0,010', k:'2,02'}, 'mL');
+buildPointGroup(document.getElementById('buretaPoints'), 'bureta_10', 'bureta', 'Volume medido 10 mL', {volume:'9,980', incerteza:'0,010', k:'2,00'}, 'mL');
 
 buildPointGroup(document.getElementById('microPoints'), 'micro_10', 'micro', 'Volume medido 10 μL', {volume:'10,40', incerteza:'0,20', k:'2,00'}, 'μL', false);
 buildPointGroup(document.getElementById('microPoints'), 'micro_50', 'micro', 'Volume medido 50 μL', {volume:'50,50', incerteza:'0,20', k:'2,00'}, 'μL', false);

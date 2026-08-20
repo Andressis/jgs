@@ -125,7 +125,7 @@
             <div class="section-tag">03 — Item de ensaio</div>
             <div class="section-name">Bureta de Vidro de 10 mL</div>
           </div>
-          <div class="section-status" data-status="bureta">0/30</div>
+          <div class="section-status" data-status="bureta">0/28</div>
           <div class="chevron"></div>
         </div>
         <div class="section-body">
@@ -151,22 +151,17 @@
       <!-- SUBMIT -->
       <div class="submit-card">
         <h2>Finalizar envio</h2>
-        <p> <b> Informe seus dados de contato e gere o arquivo de resultados.</b></p>
+        <p> <b> Confira a razão social (puxada do seu login) e informe o técnico responsável pela calibração.</b></p>
         <div class="field-grid">
-          <div class="field"><label>Razão social</label><input type="text" data-section="contato" id="contato_nome" placeholder="Razão social"></div>
-          <div class="field"><label>E‑mail</label><input type="email" data-section="contato" id="contato_email" placeholder="voce@empresa.com"></div>
-          <div class="field"><label>Telefone</label><input type="tel" data-section="contato" id="contato_telefone" placeholder="(41) 9xxxx-xxxx"></div>
+          <div class="field"><label>Razão social</label><input type="text" data-section="contato" id="razao_social" readonly></div>
+          <div class="field"><label>Técnico responsável pela calibração</label><input type="text" data-section="contato" id="tecnico_nome" placeholder="Nome do técnico"></div>
         </div>
 
         <div class="error-list" id="errorList"></div>
 
         <div class="submit-actions">
-          <button class="primary" onclick="handleSubmit()">Baixar resultados</button>
-          <span class="hint">Gera um arquivo .PDF com todos os dados preenchidos.</span>
-        </div>
-
-        <div id="confirmPanel">
-          <p>Arquivo baixado: <strong id="fileNameOut"></strong><br>Agora envie por e‑mail para o laboratório, com o arquivo em anexo.</p>
+          <button class="primary" id="submitBtn" onclick="handleSubmit()">Enviar resultados</button>
+          <span class="hint">Baixa um PDF com os dados e envia os resultados para a JGS.</span>
         </div>
       </div>
 
@@ -198,6 +193,17 @@
   </div>
 
   <footer> <b> Ensaio de Proficiência — Vidraria Volumétrica </b> </footer>
+</div>
+
+<!-- TELA DE SUCESSO (exibida após o envio ser salvo com sucesso na JGS) -->
+<div class="success-screen" id="successScreen">
+  <div class="success-box">
+    <div class="success-check">✓</div>
+    <h1>Resultados enviados para a JGS!</h1>
+    <p>Recebemos os dados da sua calibração com sucesso. Código do participante: <strong id="successCodigo"></strong></p>
+    <p class="success-file">Um PDF com os dados também foi baixado para o seu computador: <strong id="successFileName"></strong></p>
+    <button class="primary" id="successNewBtn" style="width:auto;">Enviar novo resultado</button>
+  </div>
 </div>
 
 <script src="script.js"></script>
